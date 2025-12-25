@@ -1,0 +1,6 @@
+[36m2025-12-26 01:19:43,623[0m - [32m__main__[0m - ERROR - Failed to register with STUN server. Exiting.
+[36m2025-12-26 01:19:46,631[0m - [32m__main__[0m - ERROR - Failed to register with STUN server. Exiting.
+[36m2025-12-26 01:21:06,572[0m - [32mclient.tcp_handler[0m - INFO -  Connected to 127.0.0.1:5001
+[36m2025-12-26 01:21:06,585[0m - [32mclient.tcp_handler[0m - INFO -  Handshake complete with mmd
+[36m2025-12-26 01:30:01,477[0m - [32mclient.tcp_handler[0m - INFO -  TCP Server listening on 127.0.0.1:5000
+[36m2025-12-26 01:30:25,730[0m - [32m__main__[0m - ERROR - Failed to register with STUN server. Exiting.
