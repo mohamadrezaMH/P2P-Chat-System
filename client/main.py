@@ -24,11 +24,11 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from client.network import STUNClient
-from client.tcp_handler import TCPServer
-from client.file_transfer import FileTransfer
+from network import STUNClient
+from tcp_handler import TCPServer
+from file_transfer import FileTransfer
 
 # Initialize colorama for colored output
 init(autoreset=True)

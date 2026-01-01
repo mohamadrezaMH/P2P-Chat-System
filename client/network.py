@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 class STUNClient:
     """Client for communicating with STUN server"""
     
-    def __init__(self, stun_url: str = "http://localhost:8000"):
-        self.base_url = stun_url.rstrip('/')
+    def __init__(self, stun_url: str = None):
+        self.base_url = stun_url or "http://stun-server:8000"
+        self.base_url = self.base_url.rstrip('/')
         logger.info(f"STUN client initialized with URL: {self.base_url}")
     
     def register(self, username: str, ip: str, port: int) -> bool:
@@ -19,11 +20,13 @@ class STUNClient:
         Returns: True if successful, False otherwise
         """
         try:
+            actual_ip = "host.docker.internal" if "localhost" in ip else ip
+            
             response = requests.post(
                 f"{self.base_url}/register",
                 json={
                     "username": username,
-                    "ip_address": ip,
+                    "ip_address": actual_ip,
                     "port": port
                 },
                 timeout=10
@@ -36,11 +39,8 @@ class STUNClient:
                 logger.error(f"Registration failed (Status {response.status_code}): {response.text}")
                 return False
                 
-        except requests.ConnectionError:
-            logger.error(f"Cannot connect to STUN server at {self.base_url}")
-            return False
-        except requests.Timeout:
-            logger.error("STUN server request timeout")
+        except requests.ConnectionError as e:
+            logger.error(f"Cannot connect to STUN server at {self.base_url}: {e}")
             return False
         except Exception as e:
             logger.error(f"Unexpected error during registration: {e}")

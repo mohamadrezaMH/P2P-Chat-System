@@ -234,3 +234,4 @@
 2026-01-01 16:18:18,787 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
 2026-01-01 16:18:20,811 - client.network - INFO - Registered as 'receive1' with STUN server
 2026-01-01 16:18:20,814 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5003
+2026-01-01 16:18:38,301 - client.network - WARNING - Peer 'mmd' not found on STUN server

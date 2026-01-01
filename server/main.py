@@ -181,16 +181,18 @@ async def get_peer_info(username: str):
 
 @app.get("/health")
 async def health_check():
-    """
-    Health check endpoint
-    """
-    status = {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "storage": "redis" if redis_client else "memory",
-        "peer_count": len(get_all_peers_redis() if redis_client else get_all_peers_memory())
-    }
-    return status
+    """Health check endpoint"""
+    try:
+        # Check Redis connection
+        redis_client.ping()
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "service": "STUN Server",
+            "redis": "connected"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Redis error: {e}")
 
 if __name__ == "__main__":
     uvicorn.run(
