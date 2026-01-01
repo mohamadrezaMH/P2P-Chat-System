@@ -2,63 +2,67 @@ import socket
 import threading
 import json
 import logging
-import time
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, Any
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
-class PeerConnection:
+class ConnectionInfo:
+    """Information about a TCP connection"""
     socket: socket.socket
     address: tuple
-    username: str
+    username: str = "unknown"
+
 
 class TCPServer:
-    def __init__(self, host: str, port: int, 
-                 on_message: Callable[[str, str], None] = None,
-                 on_connection: Callable[[PeerConnection], None] = None):
+    """TCP Server for accepting incoming connections"""
+    
+    def __init__(self, host: str, port: int,
+                 on_connection_request: Callable[[dict], None]):
         self.host = host
         self.port = port
-        self.on_message = on_message
-        self.on_connection = on_connection
+        self.on_connection_request = on_connection_request
         self.server_socket = None
         self.running = False
-        self.connections: Dict[str, PeerConnection] = {}
-        self.lock = threading.Lock()
+        self.accept_thread = None
+        
+        logger.debug(f"TCP Server initialized on {host}:{port}")
     
     def start(self):
         """Start TCP server in background thread"""
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server_socket.bind((self.host, self.port))
-        self.server_socket.listen(10)
-        self.server_socket.settimeout(1)
-        self.running = True
-        
-        logger.info(f" TCP Server listening on {self.host}:{self.port}")
-        
-        # Start accept thread
-        accept_thread = threading.Thread(target=self._accept_loop, daemon=True)
-        accept_thread.start()
+        try:
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.server_socket.bind((self.host, self.port))
+            self.server_socket.listen(10)
+            self.server_socket.settimeout(1)
+            self.running = True
+            
+            self.accept_thread = threading.Thread(
+                target=self._accept_connections,
+                daemon=True
+            )
+            self.accept_thread.start()
+            
+            logger.info(f"📡 TCP Server listening on {self.host}:{self.port}")
+            
+        except Exception as e:
+            logger.error(f"Failed to start TCP server: {e}")
+            raise
     
-    def _accept_loop(self):
+    def _accept_connections(self):
+        """Accept incoming connections in a loop"""
         while self.running:
             try:
                 client_socket, client_address = self.server_socket.accept()
-                logger.info(f" New connection from {client_address}")
+                logger.info(f"New connection from {client_address}")
                 
-                # Create peer connection
-                peer = PeerConnection(
-                    socket=client_socket,
-                    address=client_address,
-                    username=f"unknown_{client_address[1]}"
-                )
-                
-                # Handle in separate thread
+                # Handle connection in separate thread
                 client_thread = threading.Thread(
-                    target=self._handle_client,
-                    args=(peer,),
+                    target=self._handle_incoming_connection,
+                    args=(client_socket, client_address),
                     daemon=True
                 )
                 client_thread.start()
@@ -67,175 +71,157 @@ class TCPServer:
                 continue
             except Exception as e:
                 if self.running:
-                    logger.error(f"❌ Error accepting connection: {e}")
+                    logger.error(f"Error accepting connection: {e}")
     
-    def _handle_client(self, peer: PeerConnection):
-        """Handle communication with a connected client"""
+    def _handle_incoming_connection(self, client_socket: socket.socket, client_address: tuple):
+        """Handle a single incoming connection"""
         try:
-            # First message should be handshake with username
-            handshake_data = peer.socket.recv(1024).decode('utf-8')
+            # Set timeout for handshake
+            client_socket.settimeout(10)
+            
+            # Receive handshake data
+            handshake_data = client_socket.recv(1024).decode('utf-8')
             handshake = json.loads(handshake_data)
             
-            if handshake.get('type') == 'handshake':
-                peer.username = handshake.get('username', peer.username)
+            if handshake.get('type') == 'connection_request':
+                username = handshake.get('username', f'unknown_{client_address[1]}')
                 
-                with self.lock:
-                    self.connections[peer.username] = peer
+                # Create connection info
+                connection_info = ConnectionInfo(
+                    socket=client_socket,
+                    address=client_address,
+                    username=username
+                )
                 
-                logger.info(f" Handshake complete with {peer.username}")
+                # Notify main client about connection request
+                peer_info = {
+                    'username': username,
+                    'socket': client_socket,
+                    'address': client_address
+                }
                 
-                if self.on_connection:
-                    self.on_connection(peer)
+                # Call the callback to handle connection request
+                if self.on_connection_request:
+                    self.on_connection_request(peer_info)
+                else:
+                    # Default behavior if no callback
+                    logger.warning("No connection request handler registered")
+                    response = {
+                        "type": "connection_response",
+                        "status": "rejected",
+                        "message": "No handler available"
+                    }
+                    client_socket.send(json.dumps(response).encode('utf-8'))
+                    client_socket.close()
+                    
+            else:
+                logger.warning(f"Invalid handshake from {client_address}")
+                client_socket.close()
                 
-                # Listen for messages
-                while self.running:
-                    try:
-                        data = peer.socket.recv(4096)
-                        if not data:
-                            break
-                        
-                        message = data.decode('utf-8')
-                        
-                        try:
-                            msg_json = json.loads(message)
-                            if self.on_message:
-                                self.on_message(msg_json, peer.username)
-                        except json.JSONDecodeError:
-                            # Handle raw text or binary data
-                            if self.on_message:
-                                self.on_message(
-                                    {"type": "text", "content": message},
-                                    peer.username
-                                )
-                                
-                    except (ConnectionResetError, ConnectionAbortedError):
-                        break
-                    except Exception as e:
-                        logger.error(f"Error receiving from {peer.username}: {e}")
-                        break
-                        
+        except socket.timeout:
+            logger.warning(f"Handshake timeout from {client_address}")
+            client_socket.close()
+        except json.JSONDecodeError:
+            logger.error(f"Invalid JSON in handshake from {client_address}")
+            client_socket.close()
         except Exception as e:
-            logger.error(f"Error handling client {peer.address}: {e}")
-        finally:
-            self._remove_connection(peer)
-            peer.socket.close()
-    
-    def _remove_connection(self, peer: PeerConnection):
-        """Remove a connection"""
-        with self.lock:
-            if peer.username in self.connections:
-                del self.connections[peer.username]
-                logger.info(f" Connection closed with {peer.username}")
-    
-    def send_to_peer(self, username: str, message: dict) -> bool:
-        """Send message to specific peer"""
-        with self.lock:
-            if username not in self.connections:
-                logger.error(f"Peer '{username}' not connected")
-                return False
-            
+            logger.error(f"Error handling incoming connection: {e}")
             try:
-                data = json.dumps(message).encode('utf-8')
-                self.connections[username].socket.sendall(data)
-                return True
-            except Exception as e:
-                logger.error(f"Failed to send to {username}: {e}")
-                self._remove_connection(self.connections[username])
-                return False
-    
-    def broadcast(self, message: dict, exclude: str = None):
-        """Broadcast message to all connected peers"""
-        with self.lock:
-            for username, peer in list(self.connections.items()):
-                if username == exclude:
-                    continue
-                try:
-                    data = json.dumps(message).encode('utf-8')
-                    peer.socket.sendall(data)
-                except Exception as e:
-                    logger.error(f"Failed to broadcast to {username}: {e}")
+                client_socket.close()
+            except:
+                pass
     
     def stop(self):
         """Stop TCP server"""
         self.running = False
         if self.server_socket:
-            self.server_socket.close()
-        with self.lock:
-            for peer in self.connections.values():
-                peer.socket.close()
-            self.connections.clear()
-        logger.info(" TCP Server stopped")
+            try:
+                self.server_socket.close()
+            except:
+                pass
+        logger.info("🛑 TCP Server stopped")
+
 
 class TCPClient:
+    """TCP Client for making outgoing connections"""
+    
     def __init__(self):
         self.socket = None
         self.connected = False
-        self.peer_username = None
+        self.peer_info = {}
+        
+        logger.debug("TCP Client initialized")
     
-    def connect(self, ip: str, port: int, my_username: str) -> bool:
-        """Connect to another peer"""
+    def connect(self, host: str, port: int, timeout: int = 10) -> bool:
+        """
+        Connect to a remote host
+        Returns: True if successful, False otherwise
+        """
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.settimeout(5)
-            self.socket.connect((ip, port))
-            
-            # Send handshake
-            handshake = {
-                "type": "handshake",
-                "username": my_username,
-                "timestamp": time.time()
-            }
-            self.socket.sendall(json.dumps(handshake).encode('utf-8'))
-            
+            self.socket.settimeout(timeout)
+            self.socket.connect((host, port))
             self.connected = True
-            logger.info(f" Connected to {ip}:{port}")
+            
+            logger.info(f"Connected to {host}:{port}")
             return True
             
+        except socket.timeout:
+            logger.error(f"Connection timeout to {host}:{port}")
+            return False
+        except ConnectionRefusedError:
+            logger.error(f"Connection refused by {host}:{port}")
+            return False
         except Exception as e:
-            logger.error(f"❌ Failed to connect to {ip}:{port}: {e}")
+            logger.error(f"Failed to connect to {host}:{port}: {e}")
             return False
     
-    def send(self, message: dict) -> bool:
-        """Send message to connected peer"""
+    def send(self, data: bytes) -> bool:
+        """Send data through the socket"""
         if not self.connected or not self.socket:
             return False
         
         try:
-            data = json.dumps(message).encode('utf-8')
             self.socket.sendall(data)
             return True
         except Exception as e:
-            logger.error(f"Failed to send message: {e}")
+            logger.error(f"Failed to send data: {e}")
             self.connected = False
             return False
     
-    def receive(self, timeout: float = None) -> Optional[dict]:
-        """Receive message from connected peer"""
+    def receive(self, buffer_size: int = 4096, timeout: Optional[float] = None) -> Optional[bytes]:
+        """Receive data from the socket"""
         if not self.connected or not self.socket:
             return None
         
         try:
-            if timeout:
+            if timeout is not None:
                 self.socket.settimeout(timeout)
             
-            data = self.socket.recv(4096)
+            data = self.socket.recv(buffer_size)
             if not data:
                 self.connected = False
                 return None
             
-            message = json.loads(data.decode('utf-8'))
-            return message
+            return data
             
         except socket.timeout:
             return None
         except Exception as e:
-            logger.error(f"Error receiving: {e}")
+            logger.error(f"Error receiving data: {e}")
             self.connected = False
             return None
     
     def disconnect(self):
-        """Disconnect from peer"""
+        """Disconnect from remote host"""
         if self.socket:
-            self.socket.close()
+            try:
+                self.socket.close()
+            except:
+                pass
         self.connected = False
         logger.info("Disconnected from peer")
+    
+    def __del__(self):
+        """Destructor to ensure socket is closed"""
+        self.disconnect()

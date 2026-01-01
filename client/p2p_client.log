@@ -4,3 +4,181 @@
 [36m2025-12-26 01:21:06,585[0m - [32mclient.tcp_handler[0m - INFO -  Handshake complete with mmd
 [36m2025-12-26 01:30:01,477[0m - [32mclient.tcp_handler[0m - INFO -  TCP Server listening on 127.0.0.1:5000
 [36m2025-12-26 01:30:25,730[0m - [32m__main__[0m - ERROR - Failed to register with STUN server. Exiting.
+[36m2025-12-26 01:30:36,555[0m - [32mclient.tcp_handler[0m - INFO -  TCP Server listening on 127.0.0.1:5001
+[36m2025-12-26 01:30:50,010[0m - [32mclient.tcp_handler[0m - INFO -  Connected to 127.0.0.1:5001
+[36m2025-12-26 01:30:50,011[0m - [32mclient.tcp_handler[0m - INFO -  New connection from ('127.0.0.1', 51687)
+[36m2025-12-26 01:30:50,013[0m - [32mclient.tcp_handler[0m - INFO -  Handshake complete with ali4
+[36m2025-12-26 01:32:37,183[0m - [32mclient.tcp_handler[0m - INFO -  Connected to 127.0.0.1:5001
+[36m2025-12-26 01:32:37,183[0m - [32mclient.tcp_handler[0m - INFO -  New connection from ('127.0.0.1', 54688)
+[36m2025-12-26 01:32:37,186[0m - [32mclient.tcp_handler[0m - INFO -  Handshake complete with ali4
+[36m2025-12-26 01:34:54,252[0m - [32mclient.tcp_handler[0m - INFO -  Connection closed with ali4
+2025-12-26 01:54:41,756 - client.network - INFO - ✅ Registered as 'ali6' with STUN server
+2025-12-26 01:54:41,757 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5000
+2025-12-26 01:54:41,758 - __main__ - INFO - ✅ P2P Client started for 'ali6' at 127.0.0.1:5000
+2025-12-26 01:54:47,923 - client.network - INFO - ✅ Registered as 'ali7' with STUN server
+2025-12-26 01:54:47,925 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 01:54:47,927 - __main__ - INFO - ✅ P2P Client started for 'ali7' at 127.0.0.1:5001
+2025-12-26 01:56:02,270 - client.tcp_handler - INFO - 🔗 New connection from ('127.0.0.1', 64791)
+2025-12-26 01:56:02,270 - client.tcp_handler - INFO - ✅ Connected to 127.0.0.1:5001
+2025-12-26 01:56:02,273 - client.tcp_handler - INFO - 🤝 Handshake complete with ali6
+2025-12-26 01:56:27,803 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:56:37,136 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:56:44,562 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:57:23,057 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:57:23,058 - client.file_transfer - INFO - 📤 Sending file: test.txt (42 bytes)
+2025-12-26 01:57:23,059 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:57:23,059 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:57:23,060 - client.file_transfer - INFO - ✅ File sent successfully: test.txt
+2025-12-26 01:57:36,921 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:57:36,921 - client.file_transfer - INFO - 📤 Sending file: test.txt (42 bytes)
+2025-12-26 01:57:36,922 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:57:36,922 - client.tcp_handler - ERROR - Peer 'ali7' not connected
+2025-12-26 01:57:36,922 - client.file_transfer - INFO - ✅ File sent successfully: test.txt
+2025-12-26 02:00:39,564 - client.tcp_handler - INFO - 👋 Connection closed with ali6
+2025-12-26 02:01:13,309 - client.network - INFO - ✅ Registered as 'mmd0' with STUN server
+2025-12-26 02:01:13,310 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5000
+2025-12-26 02:01:13,311 - __main__ - INFO - ✅ P2P Client started for 'mmd0' at 127.0.0.1:5000
+2025-12-26 02:01:22,615 - client.network - INFO - ✅ Registered as 'mmd00' with STUN server
+2025-12-26 02:01:22,617 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 02:01:22,618 - __main__ - INFO - ✅ P2P Client started for 'mmd00' at 127.0.0.1:5001
+2025-12-26 02:02:03,016 - client.tcp_handler - INFO - 🔗 New connection from ('127.0.0.1', 51599)
+2025-12-26 02:02:03,027 - client.tcp_handler - INFO - ✅ Connected to 127.0.0.1:5001
+2025-12-26 02:02:03,027 - client.tcp_handler - INFO - 🤝 Handshake complete with mmd0
+2025-12-26 02:02:15,301 - client.tcp_handler - ERROR - Peer 'mmd00' not connected
+2025-12-26 02:02:28,767 - client.tcp_handler - ERROR - Peer 'mmd00' not connected
+2025-12-26 02:02:40,455 - client.tcp_handler - INFO - ✅ Connected to 127.0.0.1:5001
+2025-12-26 02:02:40,455 - client.tcp_handler - INFO - 🔗 New connection from ('127.0.0.1', 49264)
+2025-12-26 02:02:40,457 - client.tcp_handler - INFO - 🤝 Handshake complete with mmd0
+2025-12-26 02:02:55,873 - client.tcp_handler - ERROR - Peer 'mmd00' not connected
+2025-12-26 02:03:20,935 - client.tcp_handler - INFO - ✅ Connected to 127.0.0.1:5000
+2025-12-26 02:03:20,935 - client.tcp_handler - INFO - 🔗 New connection from ('127.0.0.1', 49267)
+2025-12-26 02:03:20,936 - client.tcp_handler - INFO - 🤝 Handshake complete with mmd00
+2025-12-26 02:04:31,499 - client.file_transfer - INFO - 📤 Sending file: test.txt (42 bytes)
+2025-12-26 02:04:31,500 - client.file_transfer - INFO - ✅ File sent successfully: test.txt
+2025-12-26 02:04:39,057 - client.tcp_handler - ERROR - Error receiving: Extra data: line 1 column 153 (char 152)
+2025-12-26 02:06:41,292 - client.tcp_handler - ERROR - Error receiving: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-12-26 02:06:41,293 - client.tcp_handler - INFO - 👋 Connection closed with mmd00
+2025-12-26 02:24:05,778 - client.network - INFO - ✅ Registered as 'mmd01' with STUN server
+2025-12-26 02:24:05,780 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5000
+2025-12-26 02:24:05,781 - __main__ - INFO - ✅ P2P Client started for 'mmd01' at 127.0.0.1:5000
+2025-12-26 02:24:13,895 - client.network - INFO - ✅ Registered as 'mmd02' with STUN server
+2025-12-26 02:24:13,897 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 02:24:13,899 - __main__ - INFO - ✅ P2P Client started for 'mmd02' at 127.0.0.1:5001
+2025-12-26 02:24:52,931 - client.tcp_handler - INFO - 🔗 New connection from ('127.0.0.1', 63490)
+2025-12-26 02:24:52,955 - client.tcp_handler - INFO - ✅ Connected to 127.0.0.1:5001
+1
+2025-12-26 02:25:07,881 - client.tcp_handler - ERROR - Peer 'mmd02' not connected
+2025-12-26 02:25:22,756 - client.tcp_handler - ERROR - Peer 'mmd02' not connected
+2025-12-26 02:26:34,865 - client.tcp_handler - ERROR - Peer 'mmd02' not connected
+2025-12-26 02:26:38,881 - client.tcp_handler - ERROR - Peer 'mmd02' not connected
+2025-12-26 02:26:56,751 - client.tcp_handler - ERROR - Peer 'mmd02' not connected
+2025-12-26 02:27:15,493 - client.tcp_handler - INFO - 👋 Connection closed with mmd01
+2025-12-26 02:30:46,338 - client.network - ERROR - ❌ Registration failed: {'detail': "Peer 'mmd01' already registered"}
+2025-12-26 02:30:46,341 - __main__ - ERROR - Failed to register with STUN server. Exiting.
+2025-12-26 02:30:53,514 - client.network - INFO - ✅ Registered as 'mmd03' with STUN server
+2025-12-26 02:30:53,515 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5000
+2025-12-26 02:30:53,516 - __main__ - INFO - ✅ P2P Client started for 'mmd03' at 127.0.0.1:5000
+2025-12-26 02:30:59,808 - client.network - INFO - ✅ Registered as 'mmd04' with STUN server
+2025-12-26 02:30:59,809 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 02:30:59,810 - __main__ - INFO - ✅ P2P Client started for 'mmd04' at 127.0.0.1:5001
+2025-12-26 02:31:08,435 - client.tcp_handler - INFO - 🔗 New connection from ('127.0.0.1', 61993)
+2025-12-26 02:31:08,459 - client.tcp_handler - INFO - ✅ Connected to 127.0.0.1:5001
+2025-12-26 02:31:08,459 - client.tcp_handler - INFO - 🤝 Handshake complete with mmd03
+2025-12-26 02:31:36,328 - client.network - INFO - ✅ Registered as 'mmd05' with STUN server
+2025-12-26 02:31:36,330 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5002
+2025-12-26 02:31:36,332 - __main__ - INFO - ✅ P2P Client started for 'mmd05' at 127.0.0.1:5002
+2025-12-26 02:31:49,889 - client.tcp_handler - ERROR - Peer 'mmd04' not connected
+2025-12-26 02:32:15,431 - client.tcp_handler - ERROR - Peer 'mmd04' not connected
+2025-12-26 02:32:18,538 - client.tcp_handler - ERROR - Peer 'mmd04' not connected
+2025-12-26 02:32:28,316 - client.tcp_handler - ERROR - Peer 'mmd04' not connected
+2025-12-26 02:32:42,345 - client.tcp_handler - INFO - ✅ Connected to 127.0.0.1:5001
+2025-12-26 02:32:42,344 - client.tcp_handler - INFO - 🔗 New connection from ('127.0.0.1', 59968)
+2025-12-26 02:32:42,347 - client.tcp_handler - INFO - 🤝 Handshake complete with mmd05
+2025-12-26 02:32:45,141 - client.tcp_handler - ERROR - Peer 'mmd04' not connected
+2025-12-26 02:32:51,908 - client.tcp_handler - ERROR - Peer 'mmd04' not connected
+2025-12-26 02:47:28,217 - client.tcp_handler - INFO - 👋 Connection closed with mmd05
+2025-12-26 02:47:32,266 - client.tcp_handler - ERROR - Error receiving: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-12-26 03:12:25,956 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:12:28,047 - client.network - INFO - Registered as 'user01' with STUN server
+2025-12-26 03:12:28,051 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5000
+2025-12-26 03:12:46,125 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:12:48,204 - client.network - INFO - Registered as 'user02' with STUN server
+2025-12-26 03:12:48,206 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 03:13:06,846 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:13:08,910 - client.network - INFO - Registered as 'user03' with STUN server
+2025-12-26 03:13:08,912 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5002
+2025-12-26 03:14:33,349 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 50246)
+2025-12-26 03:15:10,872 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 49969)
+2025-12-26 03:16:50,627 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:16:50,628 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:17:00,615 - client.file_transfer - INFO - Receiving file: test.txt
+2025-12-26 03:17:00,615 - client.file_transfer - INFO - Saving to: ./received_files\test_1.txt
+2025-12-26 03:17:00,616 - __main__ - ERROR - Error receiving file data: Extra data: line 1 column 121 (char 120)
+2025-12-26 03:17:00,616 - client.file_transfer - ERROR - Missing chunk 0
+2025-12-26 03:17:00,617 - client.file_transfer - ERROR - Error receiving file: [WinError 32] The process cannot access the file because it is being used by another process: './received_files\\test_1.txt'
+2025-12-26 03:17:17,898 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:17:17,899 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:17:24,608 - client.file_transfer - INFO - Receiving file: test.txt
+2025-12-26 03:17:24,608 - client.file_transfer - INFO - Saving to: ./received_files\test_1.txt
+2025-12-26 03:17:24,608 - __main__ - ERROR - Error receiving file data: Extra data: line 1 column 121 (char 120)
+2025-12-26 03:17:24,609 - client.file_transfer - ERROR - Missing chunk 0
+2025-12-26 03:17:24,609 - client.file_transfer - ERROR - Error receiving file: [WinError 32] The process cannot access the file because it is being used by another process: './received_files\\test_1.txt'
+2025-12-26 03:17:32,556 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:17:32,557 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:17:37,190 - client.file_transfer - INFO - Receiving file: test.txt
+2025-12-26 03:17:37,190 - client.file_transfer - INFO - Saving to: ./received_files\test_1.txt
+2025-12-26 03:17:37,190 - __main__ - ERROR - Error receiving file data: Extra data: line 1 column 121 (char 120)
+2025-12-26 03:17:37,192 - client.file_transfer - ERROR - Missing chunk 0
+2025-12-26 03:17:37,192 - client.file_transfer - ERROR - Error receiving file: [WinError 32] The process cannot access the file because it is being used by another process: './received_files\\test_1.txt'
+2025-12-26 03:18:05,610 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:18:07,672 - client.network - ERROR - Registration failed (Status 409): {"detail":"Peer 'user02' already registered"}
+2025-12-26 03:18:07,674 - __main__ - ERROR - Failed to register with STUN server. Exiting.
+2025-12-26 03:18:12,581 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:18:14,653 - client.network - INFO - Registered as 'user04' with STUN server
+2025-12-26 03:18:14,655 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 03:18:23,616 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 59743)
+2025-12-26 03:18:53,041 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:18:53,042 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:19:00,697 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:19:00,698 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:19:05,465 - client.file_transfer - INFO - Receiving file: test.txt
+2025-12-26 03:19:05,465 - client.file_transfer - INFO - Saving to: ./received_files\test_1.txt
+2025-12-26 03:19:05,465 - __main__ - ERROR - Error receiving file data: Extra data: line 1 column 121 (char 120)
+2025-12-26 03:19:05,466 - client.file_transfer - ERROR - Missing chunk 0
+2025-12-26 03:19:05,466 - client.file_transfer - ERROR - Error receiving file: [WinError 32] The process cannot access the file because it is being used by another process: './received_files\\test_1.txt'
+2025-12-26 03:19:21,986 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:19:21,987 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:19:29,368 - client.file_transfer - INFO - Receiving file: test.txt
+2025-12-26 03:19:29,368 - client.file_transfer - INFO - Saving to: ./received_files\test_1.txt
+2025-12-26 03:19:29,369 - __main__ - ERROR - Error receiving file data: Extra data: line 1 column 121 (char 120)
+2025-12-26 03:19:29,369 - client.file_transfer - ERROR - Missing chunk 0
+2025-12-26 03:19:29,370 - client.file_transfer - ERROR - Error receiving file: [WinError 32] The process cannot access the file because it is being used by another process: './received_files\\test_1.txt'
+2025-12-26 03:19:48,754 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:19:48,755 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:19:52,685 - client.file_transfer - INFO - Receiving file: test.txt
+2025-12-26 03:19:52,686 - client.file_transfer - INFO - Saving to: ./received_files\test.txt
+2025-12-26 03:19:52,687 - __main__ - ERROR - Error receiving file data: Extra data: line 1 column 121 (char 120)
+2025-12-26 03:19:52,687 - client.file_transfer - ERROR - Missing chunk 0
+2025-12-26 03:19:52,688 - client.file_transfer - ERROR - Error receiving file: [WinError 32] The process cannot access the file because it is being used by another process: './received_files\\test.txt'
+2025-12-26 03:20:20,526 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 63998)
+2025-12-26 03:33:54,925 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:33:56,984 - client.network - INFO - Registered as 'user05' with STUN server
+2025-12-26 03:33:56,986 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5000
+2025-12-26 03:34:01,437 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:34:03,523 - client.network - INFO - Registered as 'user06' with STUN server
+2025-12-26 03:34:03,524 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 03:34:10,512 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 56642)
+2025-12-26 03:34:22,613 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 56645)
+2025-12-26 03:34:34,667 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 56648)
+2025-12-26 03:34:41,124 - client.tcp_handler - ERROR - Error handling incoming connection: 
+2025-12-26 03:34:53,667 - client.network - INFO - STUN client initialized with URL: http://localhost:8000
+2025-12-26 03:34:55,723 - client.network - INFO - Registered as 'user07' with STUN server
+2025-12-26 03:34:55,725 - client.tcp_handler - INFO - 📡 TCP Server listening on 127.0.0.1:5001
+2025-12-26 03:35:03,461 - client.tcp_handler - INFO - New connection from ('127.0.0.1', 56662)
+2025-12-26 03:35:17,983 - client.file_transfer - INFO - Sending file: test.txt (42 bytes)
+2025-12-26 03:35:17,983 - client.file_transfer - INFO - File sent successfully: test.txt
+2025-12-26 03:35:22,016 - client.file_transfer - INFO - Receiving file: test.txt
+2025-12-26 03:35:22,017 - client.file_transfer - INFO - Saving to: ./received_files\test.txt
+2025-12-26 03:35:22,018 - __main__ - ERROR - Error receiving file data: Extra data: line 1 column 121 (char 120)
+2025-12-26 03:35:22,018 - client.file_transfer - ERROR - Missing chunk 0
+2025-12-26 03:35:22,019 - client.file_transfer - ERROR - Error receiving file: [WinError 32] The process cannot access the file because it is being used by another process: './received_files\\test.txt'

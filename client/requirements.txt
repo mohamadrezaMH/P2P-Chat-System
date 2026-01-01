@@ -1,4 +1,10 @@
+# Core dependencies
 requests==2.31.0
 click==8.1.7
 colorama==0.4.6
 rich==13.7.0
+
+# Optional dependencies (for enhanced features)
+# python-dotenv==1.0.0
+# cryptography==41.0.7
+# prompt-toolkit==3.0.39

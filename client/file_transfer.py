@@ -2,82 +2,110 @@ import os
 import json
 import hashlib
 import logging
-from typing import BinaryIO, Optional
+from typing import Dict, Optional, Callable, BinaryIO
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 class FileTransfer:
+    """Class for handling file transfers between peers"""
+    
+    CHUNK_SIZE = 8192  # 8KB chunks for file transfer
+    
     @staticmethod
-    def prepare_file_info(file_path: str) -> Optional[dict]:
-        """Prepare file metadata for transfer"""
+    def prepare_file_info(file_path: str) -> Optional[Dict]:
+        """
+        Prepare file metadata for transfer
+        Returns: Dictionary with file info or None if error
+        """
         try:
             path = Path(file_path)
             if not path.exists():
                 logger.error(f"File not found: {file_path}")
                 return None
+            if not path.is_file():
+                logger.error(f"Path is not a file: {file_path}")
+                return None
             
-            # Calculate file hash
+            # Get file size
+            file_size = path.stat().st_size
+            
+            # Calculate file hash (MD5)
             file_hash = hashlib.md5()
             with open(file_path, 'rb') as f:
                 for chunk in iter(lambda: f.read(8192), b''):
                     file_hash.update(chunk)
             
-            return {
-                "type": "file_info",
+            # Prepare file info
+            file_info = {
                 "filename": path.name,
-                "size": path.stat().st_size,
+                "size": file_size,
                 "hash": file_hash.hexdigest(),
-                "extension": path.suffix,
-                "timestamp": os.path.getmtime(file_path)
+                "extension": path.suffix.lower(),
+                "total_chunks": (file_size + FileTransfer.CHUNK_SIZE - 1) // FileTransfer.CHUNK_SIZE
             }
+            
+            logger.debug(f"Prepared file info for {path.name}: {file_size} bytes")
+            return file_info
+            
         except Exception as e:
             logger.error(f"Error preparing file info: {e}")
             return None
     
     @staticmethod
-    def send_file(file_path: str, send_func, chunk_size: int = 8192) -> bool:
-        """Send file in chunks using provided send function"""
+    def send_file(file_path: str, send_func: Callable[[Dict], bool], 
+                  chunk_size: int = None) -> bool:
+        """
+        Send file in chunks using provided send function
+        Returns: True if successful, False otherwise
+        """
+        if chunk_size is None:
+            chunk_size = FileTransfer.CHUNK_SIZE
+        
         try:
+            # Prepare file info
             file_info = FileTransfer.prepare_file_info(file_path)
             if not file_info:
                 return False
             
-            # Send file info first
+            # Send file info
             if not send_func(file_info):
                 logger.error("Failed to send file info")
                 return False
             
-            logger.info(f"📤 Sending file: {file_info['filename']} ({file_info['size']} bytes)")
+            logger.info(f"Sending file: {file_info['filename']} ({file_info['size']} bytes)")
             
             # Send file data in chunks
             with open(file_path, 'rb') as f:
-                bytes_sent = 0
                 chunk_id = 0
+                bytes_sent = 0
                 
                 while True:
                     chunk = f.read(chunk_size)
                     if not chunk:
                         break
                     
+                    # Prepare chunk data
                     chunk_data = {
                         "type": "file_chunk",
                         "chunk_id": chunk_id,
                         "data": chunk.hex(),  # Convert to hex for JSON
-                        "total_chunks": (file_info['size'] + chunk_size - 1) // chunk_size
+                        "total_chunks": file_info['total_chunks']
                     }
                     
+                    # Send chunk
                     if not send_func(chunk_data):
                         logger.error(f"Failed to send chunk {chunk_id}")
                         return False
                     
-                    bytes_sent += len(chunk)
                     chunk_id += 1
+                    bytes_sent += len(chunk)
                     
-                    # Progress indicator
-                    if chunk_id % 50 == 0:
+                    # Log progress every 10 chunks
+                    if chunk_id % 10 == 0:
                         progress = (bytes_sent / file_info['size']) * 100
-                        logger.info(f"Progress: {progress:.1f}%")
+                        logger.debug(f"File transfer progress: {progress:.1f}%")
                 
                 # Send completion message
                 completion = {
@@ -86,8 +114,8 @@ class FileTransfer:
                     "hash": file_info['hash']
                 }
                 send_func(completion)
-                
-            logger.info(f"✅ File sent successfully: {file_info['filename']}")
+            
+            logger.info(f"File sent successfully: {file_info['filename']}")
             return True
             
         except Exception as e:
@@ -95,47 +123,148 @@ class FileTransfer:
             return False
     
     @staticmethod
-    def receive_file(file_info: dict, receive_func, save_path: str = "./received") -> Optional[str]:
-        """Receive file and save it"""
+    def receive_file(file_info: Dict, receive_func: Callable[[], Optional[Dict]], 
+                     save_path: str = "./received_files") -> Optional[str]:
+        """
+        Receive file and save it
+        Returns: Path to saved file or None if error
+        """
         try:
+            # Create save directory if it doesn't exist
             os.makedirs(save_path, exist_ok=True)
-            file_path = os.path.join(save_path, file_info['filename'])
             
-            logger.info(f"📥 Receiving file: {file_info['filename']}")
+            # Prepare file path
+            filename = file_info.get('filename', 'received_file')
+            file_path = os.path.join(save_path, filename)
             
+            # Check if file already exists
+            counter = 1
+            original_file_path = file_path
+            while os.path.exists(file_path):
+                name, ext = os.path.splitext(filename)
+                new_filename = f"{name}_{counter}{ext}"
+                file_path = os.path.join(save_path, new_filename)
+                counter += 1
+            
+            logger.info(f"Receiving file: {filename}")
+            logger.info(f"Saving to: {file_path}")
+            
+            # Open file for writing
             with open(file_path, 'wb') as f:
                 total_chunks = file_info.get('total_chunks', 0)
+                received_chunks = 0
                 
                 for chunk_id in range(total_chunks):
-                    # Get chunk data
+                    # Receive chunk data
                     chunk_data = receive_func()
-                    if not chunk_data or chunk_data.get('type') != 'file_chunk':
+                    if not chunk_data:
                         logger.error(f"Missing chunk {chunk_id}")
+                        os.remove(file_path)
                         return None
                     
-                    # Convert from hex back to bytes
-                    data_bytes = bytes.fromhex(chunk_data['data'])
-                    f.write(data_bytes)
+                    # Validate chunk
+                    if (chunk_data.get('type') != 'file_chunk' or 
+                        chunk_data.get('chunk_id') != chunk_id):
+                        logger.error(f"Invalid chunk received: {chunk_data}")
+                        os.remove(file_path)
+                        return None
                     
-                    # Progress indicator
-                    if chunk_id % 50 == 0:
+                    # Convert hex to bytes
+                    try:
+                        data_bytes = bytes.fromhex(chunk_data['data'])
+                    except ValueError:
+                        logger.error(f"Invalid hex data in chunk {chunk_id}")
+                        os.remove(file_path)
+                        return None
+                    
+                    # Write chunk to file
+                    f.write(data_bytes)
+                    received_chunks += 1
+                    
+                    # Log progress every 10 chunks
+                    if chunk_id % 10 == 0:
                         progress = ((chunk_id + 1) / total_chunks) * 100
-                        logger.info(f"Progress: {progress:.1f}%")
+                        logger.debug(f"File receive progress: {progress:.1f}%")
             
             # Verify file hash
-            received_hash = hashlib.md5()
-            with open(file_path, 'rb') as f:
-                for chunk in iter(lambda: f.read(8192), b''):
-                    received_hash.update(chunk)
+            received_hash = FileTransfer.calculate_file_hash(file_path)
+            expected_hash = file_info.get('hash')
             
-            if received_hash.hexdigest() != file_info.get('hash'):
-                logger.error("File hash mismatch!")
+            if received_hash != expected_hash:
+                logger.error(f"File hash mismatch! Expected: {expected_hash}, Got: {received_hash}")
                 os.remove(file_path)
                 return None
             
-            logger.info(f"✅ File received successfully: {file_path}")
+            logger.info(f"File received successfully: {file_path}")
             return file_path
             
         except Exception as e:
             logger.error(f"Error receiving file: {e}")
+            # Try to clean up partial file
+            try:
+                if 'file_path' in locals() and os.path.exists(file_path):
+                    os.remove(file_path)
+            except:
+                pass
+            return None
+    
+    @staticmethod
+    def calculate_file_hash(file_path: str) -> str:
+        """Calculate MD5 hash of a file"""
+        file_hash = hashlib.md5()
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(8192), b''):
+                file_hash.update(chunk)
+        return file_hash.hexdigest()
+    
+    @staticmethod
+    def send_file_simple(file_path: str, send_func: Callable[[Dict], bool]) -> bool:
+        """
+        Simple file transfer (for small files)
+        Sends entire file in one message
+        """
+        try:
+            with open(file_path, 'rb') as f:
+                file_data = f.read()
+            
+            file_info = {
+                "type": "file_simple",
+                "filename": os.path.basename(file_path),
+                "size": len(file_data),
+                "data": file_data.hex(),
+                "hash": hashlib.md5(file_data).hexdigest()
+            }
+            
+            return send_func(file_info)
+            
+        except Exception as e:
+            logger.error(f"Error in simple file transfer: {e}")
+            return False
+    
+    @staticmethod
+    def receive_file_simple(file_info: Dict, save_path: str = "./received_files") -> Optional[str]:
+        """
+        Receive simple file transfer
+        """
+        try:
+            os.makedirs(save_path, exist_ok=True)
+            file_path = os.path.join(save_path, file_info['filename'])
+            
+            # Convert hex to bytes
+            file_data = bytes.fromhex(file_info['data'])
+            
+            # Write file
+            with open(file_path, 'wb') as f:
+                f.write(file_data)
+            
+            # Verify hash
+            calculated_hash = hashlib.md5(file_data).hexdigest()
+            if calculated_hash != file_info.get('hash'):
+                os.remove(file_path)
+                return None
+            
+            return file_path
+            
+        except Exception as e:
+            logger.error(f"Error receiving simple file: {e}")
             return None
