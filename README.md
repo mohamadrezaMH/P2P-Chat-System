@@ -305,10 +305,10 @@ This project was created for educational purposes as part of the Computer Networ
 **Course**: Computer Networks  
 **Semester**: Fall 2025 
 **University**: Amirkabir University of Technology (Tehran Polytechnic)  
-**Department**:  mathematic and Computer science
+**Department**: Mathematic and Computer science
 
 ### Project Team
-- Mohammadreza Mohammadi
+- Student : Mohammadreza Mohammadi
 - Instructor: Dr.Mohammad Hassan Shirali shahreza
 - Head TA: Parsa Alikhani
 
@@ -330,7 +330,7 @@ For issues related to this educational project:
 1. Check the troubleshooting section
 2. Review Docker logs
 3. Consult course materials
-4. Contact teaching assistants
+4. Contact me
 
 ---
 
