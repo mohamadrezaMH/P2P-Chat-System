@@ -296,7 +296,7 @@ This is an educational project for the Computer Networks course at Amirkabir Uni
 
 ## 📄 License
 
-This project was created for educational purposes as part of the Computer Networks course at Amirkabir University of Technology, Fall 2024.
+This project was created for educational purposes as part of the Computer Networks course at Amirkabir University of Technology, Fall 2025.
 
 **Disclaimer**: This project is for educational use only. The creators are not responsible for any misuse of this software.
 
@@ -309,7 +309,7 @@ This project was created for educational purposes as part of the Computer Networ
 
 ### Project Team
 - Mohammadreza Mohammadi
-- Instructor: Dr.Mohammad Hassan Shiaali shahreza
+- Instructor: Dr.Mohammad Hassan Shirali shahreza
 - Head TA: Parsa Alikhani
 
 ## 🔮 Future Enhancements
