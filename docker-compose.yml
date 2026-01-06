@@ -1,19 +1,18 @@
 version: '3.8'
+
 services:
-  # STUN Server with Redis
+  # STUN Server
   stun-server:
     build: ./server
     container_name: p2p-stun-server
-    hostname: stun-server 
+    hostname: stun-server
     ports:
       - "8000:8000"
     environment:
       - REDIS_HOST=localhost
       - REDIS_PORT=6379
     networks:
-      p2p-network:
-        aliases:
-          - stun-server
+      - p2p-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -22,7 +21,29 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-  # Peer 1
+    # Web Application - اینجا را تغییر دهید
+  web-app:
+    build: ./web/backend
+    container_name: p2p-web-app
+    hostname: web-app
+    ports:
+      - "8080:8080"  # یا پورتی که در app.py استفاده می‌کنید
+    depends_on:
+      stun-server:
+        condition: service_healthy
+    environment:
+      - STUN_SERVER_URL=http://stun-server:8000
+      - FLASK_ENV=development
+    networks:
+      - p2p-network
+    volumes:
+      # این دو خط را اضافه کنید برای Development (اختیاری)
+      - ./web/backend/templates:/app/templates:ro
+      - ./web/backend/static:/app/static:ro
+      - web-uploads:/app/uploads
+    restart: unless-stopped
+
+  # CLI Peer 1
   peer1:
     build: ./client
     container_name: p2p-peer-1
@@ -31,19 +52,17 @@ services:
       stun-server:
         condition: service_healthy
     environment:
-      - USERNAME=alice
+      - USERNAME=cli-user1
       - PORT=5000
     networks:
-      p2p-network:
-        aliases:
-          - peer1
+      - p2p-network
     stdin_open: true
     tty: true
     restart: "no"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    volumes:
+      - peer1-files:/app/received_files
 
-  # Peer 2
+  # CLI Peer 2
   peer2:
     build: ./client
     container_name: p2p-peer-2
@@ -52,17 +71,15 @@ services:
       stun-server:
         condition: service_healthy
     environment:
-      - USERNAME=bob
+      - USERNAME=cli-user2
       - PORT=5001
     networks:
-      p2p-network:
-        aliases:
-          - peer2
+      - p2p-network
     stdin_open: true
     tty: true
     restart: "no"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    volumes:
+      - peer2-files:/app/received_files
 
 networks:
   p2p-network:
@@ -70,8 +87,8 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
+
 volumes:
-  stun-data:
   peer1-files:
   peer2-files:
-  peer3-files:
+  web-uploads:
