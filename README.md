@@ -3,7 +3,6 @@
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-green)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 A complete peer-to-peer (P2P) chat system featuring:
 - Peer registration and management via STUN server
@@ -76,8 +75,8 @@ project/
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd project
+   git clone https://github.com/mohamadrezaMH/P2P-Chat-System
+   cd P2P-Chat-System
    ```
 
 2. **Start all services**
