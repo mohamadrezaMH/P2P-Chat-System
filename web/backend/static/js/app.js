@@ -14,6 +14,9 @@ class P2PWebApp {
         this.currentChatPeer = null;
         this.messageCount = 0;
         this.fileCount = 0;
+        this.connectionAttempts = 0;
+        this.maxConnectionAttempts = 5;
+        this.messageClass = null
         
         this.init();
     }
@@ -22,8 +25,18 @@ class P2PWebApp {
         this.bindEvents();
         this.connectWebSocket();
         this.updateUI();
+        this.setupConnectionMonitor();
     }
     
+    setupConnectionMonitor() {
+        setInterval(() => {
+            if (this.socket && !this.socket.connected) {
+                this.log('Connection lost, attempting to reconnect...', 'warning');
+                this.connectWebSocket();
+            }
+        }, 5000);
+    }
+
     bindEvents() {
         // Registration
         $('#register-btn').click(() => this.register());
@@ -50,32 +63,78 @@ class P2PWebApp {
         
         // Chat selection
         $('#chat-with').change(() => this.selectChatPeer());
+
+        $('#test-connection').click(() => this.testConnection());
+
     }
     
     connectWebSocket() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.host;
-        const wsUrl = `${protocol}//${host}/socket.io`;
+        if (this.connectionAttempts >= this.maxConnectionAttempts) {
+            this.showAlert('Error', 'Max connection attempts reached. Please refresh the page.', 'error');
+            return;
+        }
         
-        this.socket = io(wsUrl, {
+        this.connectionAttempts++;
+        
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = window.location.host;
+        
+        const wsUrl1 = `${wsProtocol}//${wsHost}/socket.io/`;
+        const wsUrl2 = `${wsProtocol}//${wsHost}`;
+        
+        this.log(`Attempting WebSocket connection (attempt ${this.connectionAttempts})...`, 'info');
+        
+        this.socket = io(wsUrl2, {
             transports: ['websocket', 'polling'],
             reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            timeout: 20000,
+            forceNew: true,
+            multiplex: false,
+            path: '/socket.io/'
         });
         
+        // Event Handlers با لاگ
         this.socket.on('connect', () => {
-            this.log('Connected to server', 'success');
+            this.connectionAttempts = 0; // reset attempts
+            this.log('✅ WebSocket Connected to server', 'success');
+            this.showAlert('Connected', 'Successfully connected to server', 'success');
             this.updateConnectionStatus(true);
-        });
-        
-        this.socket.on('disconnect', () => {
-            this.log('Disconnected from server', 'error');
-            this.updateConnectionStatus(false);
+            
+            this.socket.emit('ping');
         });
         
         this.socket.on('connected', (data) => {
-            this.log('WebSocket connection established', 'success');
+            this.log(`✅ Connection established: ${data.message}`, 'success');
+            this.showAlert('Connected', 'WebSocket connection established', 'success');
+        });
+        
+        this.socket.on('status_update', (data) => {
+            this.log(`Status: ${data.type} - ${data.message}`, 'info');
+        });
+        
+        this.socket.on('pong', (data) => {
+            this.log(`Ping response received`, 'success');
+        });
+        
+        this.socket.on('disconnect', (reason) => {
+            this.log(`❌ Disconnected from server: ${reason}`, 'error');
+            this.updateConnectionStatus(false);
+            this.showAlert('Disconnected', 'Lost connection to server', 'warning');
+        });
+        
+        this.socket.on('connect_error', (error) => {
+            this.log(`❌ Connection error: ${error.message}`, 'error');
+            this.updateConnectionStatus(false);
+            
+            if (this.connectionAttempts < this.maxConnectionAttempts) {
+                setTimeout(() => {
+                    this.log(`Retrying connection... (${this.connectionAttempts}/${this.maxConnectionAttempts})`, 'info');
+                    this.connectWebSocket();
+                }, 2000);
+            }
         });
         
         this.socket.on('registration_result', (data) => {
@@ -105,6 +164,34 @@ class P2PWebApp {
         this.socket.on('message_sent', (data) => {
             this.handleMessageSent(data);
         });
+
+        this.socket.on('file_received', (data) => {
+            this.handleFileReceived(data);
+        });
+
+        this.socket.on('file_sent', (data) => {
+            this.handleFileSent(data);
+        });
+    }
+    
+    testConnection() {
+        if (!this.socket) {
+            this.showAlert('Error', 'Socket not initialized', 'error');
+            return;
+        }
+        
+        this.log(`Testing connection... Socket connected: ${this.socket.connected}`, 'info');
+        
+        // تست HTTP connection
+        fetch('/api/test/connection')
+            .then(response => response.json())
+            .then(data => {
+                this.log(`HTTP Test: ${JSON.stringify(data)}`, 'success');
+                this.showAlert('Connection Test', `HTTP: OK, WebSocket: ${this.socket.connected ? 'Connected' : 'Disconnected'}`, 'info');
+            })
+            .catch(error => {
+                this.log(`HTTP Test failed: ${error}`, 'error');
+            });
     }
     
     register() {
@@ -120,15 +207,34 @@ class P2PWebApp {
             this.showAlert('Error', 'Username must be at least 3 characters', 'error');
             return;
         }
+
+        this.log(`Registering... Socket status: ${this.socket ? 'exists' : 'null'}, Connected: ${this.socket ? this.socket.connected : 'N/A'}`, 'info');
         
-        if (!this.socket || !this.socket.connected) {
-            this.showAlert('Error', 'Not connected to server', 'error');
+         if (!this.socket) {
+            this.showAlert('Error', 'Socket not initialized. Please wait for connection or refresh page.', 'error');
+            this.connectWebSocket();
+            return;
+        }
+        
+        if (!this.socket.connected) {
+            this.showAlert('Error', 'Not connected to server. Attempting to reconnect...', 'error');
+            this.connectWebSocket();
+            
+            setTimeout(() => {
+                if (this.socket.connected) {
+                    this.register();
+                } else {
+                    this.showAlert('Error', 'Still not connected. Please check your network.', 'error');
+                }
+            }, 2000);
             return;
         }
         
         this.username = username;
         this.port = port;
-        
+
+        this.log(`Emitting register event for ${username}...`, 'info');
+
         this.socket.emit('register', {
             username: username,
             port: port
@@ -285,7 +391,7 @@ class P2PWebApp {
         const selectedPeer = $('#chat-with').val();
         this.currentChatPeer = selectedPeer;
         
-        this.clearChat();
+        // this.clearChat();
         
         if (selectedPeer) {
             this.addChatMessage('system', `Started chat with ${selectedPeer}`, 'info');
@@ -505,17 +611,17 @@ class P2PWebApp {
             $chat.empty();
         }
         
-        let messageClass = type;
+        this.messageClass = type;
         let senderName = type === 'outgoing' ? 'You' : (sender || 'Unknown');
         let avatarLetter = senderName.charAt(0).toUpperCase();
         
         if (type === 'system') {
-            messageClass = 'system';
+            this.messageClass = 'system';
             senderName = 'System';
         }
         
         const messageHtml = `
-            <div class="message ${messageClass}">
+            <div class="message ${this.messageClass}">
                 <div class="d-flex align-items-start">
                     <div class="me-2">
                         <div class="avatar-circle-small">
@@ -624,7 +730,29 @@ class P2PWebApp {
                 max-width: 100% !important;
             }
         `;
+
+        const fileStyles = document.createElement('style');
+        fileStyles.textContent = `
+            .file-preview {
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 10px;
+                background-color: #f8f9fa;
+                max-width: 300px;
+            }
+            .file-preview img {
+                border-radius: 4px;
+                transition: transform 0.2s;
+            }
+            .file-preview img:hover {
+                transform: scale(1.05);
+            }
+            .file-info {
+                font-size: 0.85rem;
+            }
+        `;
         document.head.appendChild(style);
+        document.head.appendChild(fileStyles);
     }
     
     // Utility Methods
@@ -632,17 +760,19 @@ class P2PWebApp {
         const timestamp = new Date().toLocaleTimeString();
         const typeClass = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
         
+        console.log(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+        
         const logEntry = `
             <div class="log-entry ${typeClass}">
-                <small>${timestamp}: ${message}</small>
+                <small><strong>[${timestamp}]</strong> ${message}</small>
             </div>
         `;
         
         $('#activity-logs').prepend(logEntry);
         
-        // Keep only last 20 logs
+        // Keep only last 50 logs
         const logs = $('#activity-logs').children();
-        if (logs.length > 20) {
+        if (logs.length > 50) {
             logs.last().remove();
         }
     }
@@ -672,9 +802,161 @@ class P2PWebApp {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
+
+
+
+
+
+
+    handleFileReceived(data) {
+    this.log(`📥 File received from ${data.from}: ${data.filename} (${this.formatBytes(data.size)})`, 'success');
+    
+    this.addFileMessage(data.from, data.filename, data.data);
+    
+    this.showAlert('File Received', `${data.filename} from ${data.from}`, 'success');
+}
+
+
+handleFileSent(data) {
+    if (data.success) {
+        this.log(`✅ File sent to ${data.to}: ${data.filename}`, 'success');
+        this.addFileMessage('You', data.filename, 'sent');
+    } else {
+        this.log(`❌ Failed to send file: ${data.message}`, 'error');
+        this.showAlert('File Send Failed', data.message, 'error');
+    }
+}
+
+addFileMessage(sender, filename, base64Data) {
+    const $chat = $('#chat-messages');
+    const timestamp = new Date().toLocaleTimeString();
+    const avatarLetter = sender.charAt(0).toUpperCase();
+    
+    const isImage = filename.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i);
+    const isPDF = filename.match(/\.pdf$/i);
+    const isText = filename.match(/\.(txt|json|js|html|css|py|java|cpp)$/i);
+    
+    let fileContent = '';
+    
+    if (isImage) {
+        fileContent = `
+            <div class="file-preview">
+                <img src="data:image/jpeg;base64,${base64Data}" 
+                     alt="${filename}" 
+                     class="img-thumbnail" 
+                     style="max-width: 200px; max-height: 200px; cursor: pointer;"
+                     onclick="window.p2pApp.downloadFile('${filename}', '${base64Data}')">
+                <div class="file-info mt-1">
+                    <small class="text-muted">${filename}</small>
+                </div>
+            </div>
+        `;
+    } else if (isPDF) {
+        fileContent = `
+            <div class="file-preview">
+                <i class="fas fa-file-pdf text-danger fa-3x"></i>
+                <div class="file-info mt-1">
+                    <small class="text-muted">${filename}</small>
+                    <br>
+                    <button class="btn btn-sm btn-danger mt-1" 
+                            onclick="window.p2pApp.downloadFile('${filename}', '${base64Data}')">
+                        <i class="fas fa-download me-1"></i>Download PDF
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        fileContent = `
+            <div class="file-preview">
+                <i class="fas fa-file fa-3x text-secondary"></i>
+                <div class="file-info mt-1">
+                    <small class="text-muted">${filename}</small>
+                    <br>
+                    <button class="btn btn-sm btn-outline-secondary mt-1" 
+                            onclick="window.p2pApp.downloadFile('${filename}', '${base64Data}')">
+                        <i class="fas fa-download me-1"></i>Download
+                    </button>
+                    ${isText ? `
+                    <button class="btn btn-sm btn-outline-info mt-1" 
+                            onclick="window.p2pApp.previewTextFile('${filename}', '${base64Data}')">
+                        <i class="fas fa-eye me-1"></i>Preview
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    const messageHtml = `
+        <div class="message ${this.messageClass}">
+            <div class="d-flex align-items-start">
+                <div class="me-2">
+                    <div class="avatar-circle-small">
+                        ${avatarLetter}
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="sender fw-bold">${sender}</span>
+                        <span class="time small text-muted">${timestamp}</span>
+                    </div>
+                    <div class="message-content">
+                        ${fileContent}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $chat.append(messageHtml);
+    $chat.scrollTop($chat[0].scrollHeight);
+}
+
+formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+downloadFile(filename, base64Data) {
+    const link = document.createElement('a');
+    link.href = 'data:application/octet-stream;base64,' + base64Data;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.log(`File downloaded: ${filename}`, 'success');
+}
+
+previewTextFile(filename, base64Data) {
+    try {
+        const text = atob(base64Data);
+        Swal.fire({
+            title: `Preview: ${filename}`,
+            html: `<pre style="text-align: left; max-height: 400px; overflow-y: auto;">${this.escapeHtml(text)}</pre>`,
+            width: '80%',
+            showCloseButton: true,
+            showConfirmButton: false
+        });
+    } catch (e) {
+        this.showAlert('Error', 'Cannot preview this file', 'error');
+    }
+}
 }
 
 // Initialize app when page loads
 $(document).ready(() => {
     window.p2pApp = new P2PWebApp();
+    
+    // همچنین می‌توانید یک دکمه تست به HTML اضافه کنید
+    $('body').append(`
+        <button id="test-connection" style="position: fixed; bottom: 10px; right: 10px; z-index: 1000;" 
+                class="btn btn-sm btn-info">
+            Test Connection
+        </button>
+    `);
 });
