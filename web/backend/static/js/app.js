@@ -64,8 +64,6 @@ class P2PWebApp {
         // Chat selection
         $('#chat-with').change(() => this.selectChatPeer());
 
-        $('#test-connection').click(() => this.testConnection());
-
     }
     
     connectWebSocket() {
@@ -96,7 +94,6 @@ class P2PWebApp {
             path: '/socket.io/'
         });
         
-        // Event Handlers با لاگ
         this.socket.on('connect', () => {
             this.connectionAttempts = 0; // reset attempts
             this.log('✅ WebSocket Connected to server', 'success');
@@ -182,7 +179,6 @@ class P2PWebApp {
         
         this.log(`Testing connection... Socket connected: ${this.socket.connected}`, 'info');
         
-        // تست HTTP connection
         fetch('/api/test/connection')
             .then(response => response.json())
             .then(data => {
@@ -951,12 +947,4 @@ previewTextFile(filename, base64Data) {
 // Initialize app when page loads
 $(document).ready(() => {
     window.p2pApp = new P2PWebApp();
-    
-    // همچنین می‌توانید یک دکمه تست به HTML اضافه کنید
-    $('body').append(`
-        <button id="test-connection" style="position: fixed; bottom: 10px; right: 10px; z-index: 1000;" 
-                class="btn btn-sm btn-info">
-            Test Connection
-        </button>
-    `);
 });

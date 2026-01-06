@@ -13,10 +13,10 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application - اینجا همه چیز کپی میشه
+# Copy application 
 COPY . .
 
-# Create necessary directories - این خط را تغییر/اضافه کنید
+# Create necessary directories 
 RUN mkdir -p /app/uploads /app/templates /app/static/css /app/static/js /app/static/lib
 
 # Expose port

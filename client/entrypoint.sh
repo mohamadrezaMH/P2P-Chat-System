@@ -5,7 +5,7 @@ echo "⏳ Waiting for STUN server..."
 max_attempts=30
 attempt=1
 
-# Get container IP (برای ثبت‌نام در STUN)
+# Get container IP 
 CONTAINER_IP=$(hostname -i)
 echo "📦 Container IP: $CONTAINER_IP"
 

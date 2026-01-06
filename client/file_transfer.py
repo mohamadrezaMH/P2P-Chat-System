@@ -243,11 +243,9 @@ class FileTransfer:
     
     @staticmethod
     def receive_file_simple(file_info: dict, save_path: str = "./received_files") -> Optional[str]:
-        """دریافت فایل به روش ساده (برای فایل‌های کوچک)"""
         try:
             os.makedirs(save_path, exist_ok=True)
             
-            # ایجاد نام فایل منحصربفرد
             filename = file_info.get('filename', 'received_file')
             base_name, ext = os.path.splitext(filename)
             counter = 1
@@ -258,8 +256,6 @@ class FileTransfer:
                 file_path = os.path.join(save_path, new_filename)
                 counter += 1
             
-            # در این نسخه ساده، فایل خالی ایجاد می‌کنیم
-            # در نسخه کامل، باید داده‌های واقعی را دریافت کنیم
             with open(file_path, 'wb') as f:
                 f.write(b"File received - Placeholder for actual content")
             

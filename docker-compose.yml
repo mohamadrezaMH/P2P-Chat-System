@@ -21,13 +21,12 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-    # Web Application - اینجا را تغییر دهید
   web-app:
     build: ./web/backend
     container_name: p2p-web-app
     hostname: web-app
     ports:
-      - "8080:8080"  # یا پورتی که در app.py استفاده می‌کنید
+      - "8080:8080"  
     depends_on:
       stun-server:
         condition: service_healthy
@@ -37,7 +36,6 @@ services:
     networks:
       - p2p-network
     volumes:
-      # این دو خط را اضافه کنید برای Development (اختیاری)
       - ./web/backend/templates:/app/templates:ro
       - ./web/backend/static:/app/static:ro
       - web-uploads:/app/uploads

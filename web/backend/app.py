@@ -35,7 +35,6 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 app.config['SECRET_KEY'] = 'p2p-secret-key-2024'
 app.config['DEBUG'] = True
 
-# تنظیمات اضافی برای WebSocket
 socketio = SocketIO(
     app, 
     cors_allowed_origins="*",
@@ -43,7 +42,7 @@ socketio = SocketIO(
     ping_timeout=60,
     ping_interval=25,
     logger=True,
-    engineio_logger=True,  # فعال کردن لاگ‌های EngineIO
+    engineio_logger=True, 
     always_connect=True
 )
 
@@ -218,10 +217,8 @@ class P2PWebBridge:
         
         # Web-to-web file transfer
         if to_user in self.active_users:
-            # ایجاد یک ID یکتا برای فایل
             file_id = f"file_{int(time.time())}_{filename}"
             
-            # ذخیره موقت فایل در memory (یا می‌توانید در فایل سیستم ذخیره کنید)
             socketio.emit('file_received', {
                 'from': from_user,
                 'filename': filename,
@@ -234,7 +231,6 @@ class P2PWebBridge:
             logger.info(f"✅ File sent from {from_user} to {to_user}: {filename}")
             return True, "File sent"
         
-        # Web-to-CLI file transfer (برای آینده)
         logger.warning(f"Cannot send file to CLI user {to_user}")
         return False, "CLI file transfer not implemented"
 
@@ -242,9 +238,6 @@ class P2PWebBridge:
 p2p_bridge = P2PWebBridge()
 
 
-# app = Flask(__name__, 
-#             template_folder='../frontend',
-#             static_folder='../frontend')
 # Web Routes
 @app.route('/')
 def index():
@@ -284,7 +277,6 @@ def handle_connect():
         'message': 'Connection established'
     })
     
-    # همچنین می‌توانیم status update بفرستیم
     emit('status_update', {
         'type': 'connection',
         'status': 'connected',
@@ -368,7 +360,7 @@ def handle_send_message(data):
         'success': success,
         'message': msg,
         'to': to_user,
-        'original_message': message[:100]  # برای لاگ
+        'original_message': message[:100]  
     })
 
 @socketio.on('ping')
@@ -416,149 +408,6 @@ if __name__ == '__main__':
         app, 
         host='0.0.0.0', 
         port=8080, 
-        debug=True,  # در production به False تغییر دهید
+        debug=True,  
         log_output=True
     )
-    
-
-
-# @app.route('/api/register', methods=['POST'])
-# def api_register():
-#     """API endpoint for user registration"""
-#     data = request.json
-#     username = data.get('username')
-#     port = data.get('port', 6000)
-    
-#     if not username:
-#         return jsonify({'success': False, 'error': 'Username required'}), 400
-    
-#     success = p2p_bridge.register_user(username, port, request.sid)
-    
-#     if success:
-#         return jsonify({
-#             'success': True,
-#             'username': username,
-#             'message': 'Registered successfully'
-#         })
-#     else:
-#         return jsonify({
-#             'success': False,
-#             'error': 'Registration failed'
-#         }), 500
-
-# @app.route('/api/peers')
-# def api_peers():
-#     """Get list of available peers"""
-#     username = request.args.get('username')
-#     peers = p2p_bridge.get_available_peers(exclude_user=username)
-#     return jsonify({'peers': peers})
-
-# @app.route('/api/connect', methods=['POST'])
-# def api_connect():
-#     """Connect to a peer"""
-#     data = request.json
-#     username = data.get('username')
-#     target = data.get('target')
-    
-#     if not username or not target:
-#         return jsonify({'success': False, 'error': 'Missing parameters'}), 400
-    
-#     success, message = p2p_bridge.connect_to_peer(username, target)
-    
-#     return jsonify({
-#         'success': success,
-#         'message': message,
-#         'peer': target
-#     })
-
-# @app.route('/api/send', methods=['POST'])
-# def api_send():
-#     """Send a message"""
-#     data = request.json
-#     from_user = data.get('from')
-#     to_user = data.get('to')
-#     message = data.get('message')
-    
-#     if not all([from_user, to_user, message]):
-#         return jsonify({'success': False, 'error': 'Missing parameters'}), 400
-    
-#     success, msg = p2p_bridge.send_message(from_user, to_user, message)
-    
-#     return jsonify({
-#         'success': success,
-#         'message': msg
-#     })
-
-# # WebSocket Events
-# @socketio.on('connect')
-# def handle_connect():
-#     """Handle client connection"""
-#     logger.info(f"Client connected: {request.sid}")
-#     emit('connected', {'sid': request.sid})
-
-# @socketio.on('disconnect')
-# def handle_disconnect():
-#     """Handle client disconnection"""
-#     logger.info(f"Client disconnected: {request.sid}")
-    
-#     # Find and cleanup user
-#     for username, sid in p2p_bridge.active_users.items():
-#         if sid == request.sid:
-#             p2p_bridge.disconnect_user(username)
-#             break
-
-# @socketio.on('register')
-# def handle_register(data):
-#     """Handle user registration via WebSocket"""
-#     username = data.get('username')
-#     port = data.get('port', 6000)
-    
-#     success = p2p_bridge.register_user(username, port, request.sid)
-    
-#     emit('registration_result', {
-#         'success': success,
-#         'username': username if success else None
-#     })
-
-# @socketio.on('get_peers')
-# def handle_get_peers(data):
-#     """Handle request for peers list"""
-#     username = data.get('username')
-#     peers = p2p_bridge.get_available_peers(exclude_user=username)
-    
-#     emit('peers_list', {
-#         'peers': peers
-#     })
-
-# @socketio.on('connect_to_peer')
-# def handle_connect_to_peer(data):
-#     """Handle connection request to a peer"""
-#     username = data.get('username')
-#     target = data.get('target')
-    
-#     success, message = p2p_bridge.connect_to_peer(username, target)
-    
-#     emit('connection_result', {
-#         'success': success,
-#         'message': message,
-#         'peer': target
-#     })
-
-# @socketio.on('send_message')
-# def handle_send_message(data):
-#     """Handle sending a message"""
-#     from_user = data.get('from')
-#     to_user = data.get('to')
-#     message = data.get('message')
-    
-#     success, msg = p2p_bridge.send_message(from_user, to_user, message)
-    
-#     emit('message_sent', {
-#         'success': success,
-#         'message': msg,
-#         'to': to_user
-#     })
-
-# if __name__ == '__main__':
-#     logger.info("Starting P2P Web Backend...")
-#     socketio.run(app, host='0.0.0.0', port=8080, debug=True)
